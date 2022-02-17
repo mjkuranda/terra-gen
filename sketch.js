@@ -5,33 +5,51 @@ const PIXEL_DENSITY =   1;
 const BG_THEME      =   90;
 
 
-const L_SEA         =   0.502; //0.5025;
+const L_SEA         =   0.502;      //0.5025;
 const L_BEACH       =   0.5035;
 
-const L_HILLS       =   0.50125;//0.4975;
-const L_MOUNTAIN    =   0.51//0.5075;
+const L_HILLS       =   0.50125;    //0.4975;
+const L_MOUNTAIN    =   0.51;       //0.5075;
 
 
 const INTERPOLATION =   128;
 
 
 var map,
-    mapSurface, // mountain, hills
-    mapResources, // forests, ores
-    mapAnimals, // animals
-    mapImg; // FINAL
+    mapSurface,     // mountain, hills
+    mapResources,   // forests, ores
+    mapAnimals,     // animals
+    mapImg;         // FINAL
 
 
-const T_TERRAIN      =   'TERRAIN';
-const T_SURFACE      =   'SURFACE';
-const T_RESOURCES    =   'RESOURCES';
-const T_ANIMALS      =   'ANIMALS';
+const T_TERRAIN     =   'TERRAIN';
+const T_SURFACE     =   'SURFACE';
+const T_RESOURCES   =   'RESOURCES';
+const T_ANIMALS     =   'ANIMALS';
 
-const T_FINAL        =   'FINAL';
-var T_CURRENT        =    T_FINAL;
+const T_FINAL       =   'FINAL';
+var T_CURRENT       =    T_FINAL;
 
 
-const TILES         =    [ 'sea', 'beach', 'plains', 'hills', 'mountain' ];
+const TILE_SEA      =   0;
+const TILE_BEACH    =   1;
+const TILE_PLAINS   =   2;
+const TILE_FOREST   =   3;
+const TILE_MOUNTAIN =   4;
+const TILE_RIVER    =   5;
+
+
+const RES_COAL      =   0;  //  22%     63  63  63
+const RES_IRON      =   1;  //  13%     127 127 127
+const RES_COPPER    =   2;  //  13%     184 115 51
+const RES_TIN       =   3;  //  10%     159 159 159
+const RES_ALUMINIUM =   4;  //  15%     191 191 191
+const RES_SILVER    =   5;  //  12%     211 211 211
+const RES_GOLD      =   6;  //  10%     211 175 55
+const RES_URANIUM   =   7;  //  5%      47  248 31
+
+const RES_OIL       =   8;  //  0.0075% 15  15  15
+const RES_GAS       =   9;  //  0.0075% 239 239 239  
 
 
 
@@ -43,6 +61,8 @@ function setup() {
 
     map = mapInit();
     mapSurface = mapInit();
+    mapResources = mapInit();
+    mapAnimals = mapInit();
 
 
     generate();
@@ -80,70 +100,137 @@ function draw() {
                 break;
 
                 case T_SURFACE:
-                    if (mapSurface[x][y] == 4) {
-                        pixels[i]   =   127;
-                        pixels[i+1] =   127;
-                        pixels[i+2] =   127;
-                        pixels[i+3] =   255;    // alpha
-                    }
-                    else if (mapSurface[x][y] == 10) { // river
+                    if (mapSurface[x][y] == 10) { // river
                         pixels[i]   =   0;
                         pixels[i+1] =   0;
                         pixels[i+2] =   223;
                         pixels[i+3] =   255;
                     }
-                    else { // Plains...
-                        pixels[i]   =   0;
+                    else if (mapImg[x][y] == TILE_MOUNTAIN) {
+                        pixels[i]   =   127;
                         pixels[i+1] =   127;
+                        pixels[i+2] =   127;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapImg[x][y] == TILE_FOREST) {
+                        pixels[i]   =   0;
+                        pixels[i+1] =   63;
+                        pixels[i+2] =   0;
+                        pixels[i+3] =   255;
+                    }
+                break;
+
+                case T_RESOURCES:
+                    if (mapResources[x][y] == RES_COAL) {
+                        pixels[i]   =   63;
+                        pixels[i+1] =   63;
+                        pixels[i+2] =   63;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_IRON) {
+                        pixels[i]   =   127;
+                        pixels[i+1] =   127;
+                        pixels[i+2] =   127;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_COPPER) {
+                        pixels[i]   =   184;
+                        pixels[i+1] =   115;
+                        pixels[i+2] =   51;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_TIN) {
+                        pixels[i]   =   159;
+                        pixels[i+1] =   159;
+                        pixels[i+2] =   159;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_ALUMINIUM) {
+                        pixels[i]   =   191;
+                        pixels[i+1] =   191;
+                        pixels[i+2] =   191;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_SILVER) {
+                        pixels[i]   =   211;
+                        pixels[i+1] =   211;
+                        pixels[i+2] =   211;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_GOLD) {
+                        pixels[i]   =   211;
+                        pixels[i+1] =   175;
+                        pixels[i+2] =   55;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_URANIUM) {
+                        pixels[i]   =   47;
+                        pixels[i+1] =   248;
+                        pixels[i+2] =   31;
+                        pixels[i+3] =   255;
+                    }
+
+                    else if (mapResources[x][y] == RES_OIL) {
+                        pixels[i]   =   15;
+                        pixels[i+1] =   15;
+                        pixels[i+2] =   15;
+                        pixels[i+3] =   255;
+                    }
+                    else if (mapResources[x][y] == RES_GAS) {
+                        pixels[i]   =   239;
+                        pixels[i+1] =   239;
+                        pixels[i+2] =   239;
+                        pixels[i+3] =   255;
+                    }
+                break;
+
+                case T_ANIMALS:
+                    if (mapAnimals[x][y] == 1) {
+                        pixels[i]   =   127;
+                        pixels[i+1] =   0;
                         pixels[i+2] =   0;
                         pixels[i+3] =   255;    // alpha
                     }
                 break;
 
-                case T_RESOURCES:
-                break;
-
-                case T_ANIMALS:
-                break;
-
                 case T_FINAL:
                     switch(mapImg[x][y]) {
-                        case 0: // sea
+                        case TILE_SEA:
                             pixels[i]   =   0;
                             pixels[i+1] =   0;
                             pixels[i+2] =   127;
                             pixels[i+3] =   255;
                         break;
                         
-                        case 1: // beach
+                        case TILE_BEACH:
                             pixels[i]   =   223;
                             pixels[i+1] =   193;
                             pixels[i+2] =   63;
                             pixels[i+3] =   255;
                         break;
 
-                        case 2: // plains
+                        case TILE_PLAINS:
                             pixels[i]   =   0;
                             pixels[i+1] =   127;
                             pixels[i+2] =   0;
                             pixels[i+3] =   255;
                         break;
 
-                        case 3: // forest
+                        case TILE_FOREST:
                             pixels[i]   =   0;
                             pixels[i+1] =   63;
                             pixels[i+2] =   0;
                             pixels[i+3] =   255;
                         break;
 
-                        case 4: // mountain
+                        case TILE_MOUNTAIN:
                             pixels[i]   =   127;
                             pixels[i+1] =   127;
                             pixels[i+2] =   127;
                             pixels[i+3] =   255;
                         break;
 
-                        case 5: // river
+                        case TILE_RIVER:
                             pixels[i]   =   0;
                             pixels[i+1] =   0;
                             pixels[i+2] =   223;
@@ -177,7 +264,10 @@ function mapInit() {
 
 // Generate new map
 function generate() {
+    console.clear();
     console.log("Generating new terrain...");
+
+    console.log("Throwing a seed...");
 
     // Each element
     for (x = 0; x < MAP_WIDTH; x++) {
@@ -198,6 +288,18 @@ function generate() {
 
 
 
+    console.log("Generating animals...");
+
+    // Each element
+    for (x = 0; x < MAP_WIDTH; x++) {
+        for (y = 0; y < MAP_HEIGHT; y++) {
+            mapAnimals[x][y] = (Math.random() > 0.95) ? 1 : 0;
+        }
+    }
+
+
+
+    console.log("Interpolating map...");
     for (i = 0; i < INTERPOLATION; i++) { interpolateAll(); }
 
 
@@ -207,8 +309,6 @@ function generate() {
         for (y = 0; y < MAP_HEIGHT; y++) {
             if (map[x][y] <= L_SEA) mapImg[x][y] = 0; // sea
             else {
-                // if (mapSurface[x][y] >= L_HILLS && mapSurface[x][y] < L_MOUNTAIN) mapImg[x][y] = 3; // hills
-                // else if (mapSurface[x][y] >= L_MOUNTAIN) mapImg[x][y] = 4; // mountain
                 if (Math.random() >= 0.825) {
                     if (map[x][y] <= L_BEACH) mapImg[x][y] = 1; // beach
                     else {
@@ -227,12 +327,57 @@ function generate() {
     }
 
     generateMountain();
-    // generateRivers();
+
+
+
+    console.log("Generating resources...");
+
+    // Each element
+    for (x = 0; x < MAP_WIDTH; x++) {
+        for (y = 0; y < MAP_HEIGHT; y++) {
+            mapResources[x][y] = 10; // reset
+
+            if (mapImg[x][y] == TILE_MOUNTAIN) {
+                let r = Math.random();
+
+                        if (r < 0.22)   mapResources[x][y] = RES_COAL;
+                else    if (r < 0.35)   mapResources[x][y] = RES_IRON;
+                else    if (r < 0.48)   mapResources[x][y] = RES_COPPER;
+                else    if (r < 0.58)   mapResources[x][y] = RES_TIN;
+                else    if (r < 0.73)   mapResources[x][y] = RES_ALUMINIUM;
+                else    if (r < 0.85)   mapResources[x][y] = RES_SILVER;
+                else    if (r < 0.95)   mapResources[x][y] = RES_GOLD;
+                else                    mapResources[x][y] = RES_URANIUM;
+            }
+            else {
+                let r = Math.random();
+
+                if (r < 0.0075) {
+                    // Gas
+                    if (y < 43 || y > 85) {
+                        mapResources[x][y] = RES_GAS;
+                    }
+                    // Oil
+                    else {
+                        mapResources[x][y] = RES_OIL;
+                    }
+                }
+            }
+        }
+    }
+
+
 
     if (document.getElementById('rivers').checked) generateRivers();
+
+    
+
+    console.log("The map has been generated successfully!");
 }
 
 function generateRivers() {
+    console.log("Generating rivers...");
+
     let max = 0; // maximal value
     let tim = 0; // times
 
@@ -256,7 +401,7 @@ function generateRivers() {
             if (map[x][y].toFixed(1) == max.toFixed(1) && mapImg[x][y] == 4 && rand(0, 99) == 0) {
                 mapSurface[x][y] = 10;
                 mapImg[x][y] = 5;
-                console.log("River");
+                // console.log("River");
 
                 generateRiver(x, y);
             }
@@ -278,7 +423,7 @@ function interpolate(m, x, y) {
 
 // Interpolate all
 function interpolateAll() {
-    console.log("Interpolating terrain...");
+    // console.log("Interpolating terrain...");
 
     // Each element
     for (x = 0; x < MAP_WIDTH; x++) {
@@ -296,45 +441,9 @@ function rand(min, max) {
     return Math.floor(Math.random() * max) + min;
 }
 
-
-
-
-// function generateMountain2() {
-//     let length = 64; // range of mountain
-
-//     for (i = 0; i < 10; i++) {
-//         let x = rand(1, MAP_WIDTH-1);
-//         let y = rand(1, MAP_HEIGHT-1);
-
-//         let dx = (Math.random() >= 0.5) ? ((x < MAP_WIDTH/2) ? -1 : 1) : 0;
-//         let dy = (Math.random() >= 0.5) ? ((y < MAP_HEIGHT/2) ? -1 : 1) : 0;
-
-//         let tx = 0;
-//         let ty = 0;
-//         if (Math.random() >= 0.5) tx++; else ty++;
-
-//         if (dx == 0 && dy == 0) { dx = 1; }
-
-//         for (l = 0; l < length; l++) {
-//             mapSurface[x][y] = 4;
-
-//             if (x > 0) mapSurface[x-1][y] = 4;
-//             if (x < MAP_WIDTH - 1) mapSurface[x+1][y] = 4;
-//             if (y > 0) mapSurface[x][y-1] = 4;
-//             if (y < MAP_HEIGHT - 1) mapSurface[x][y+1] = 4;
-
-//             dx += tx;
-//             dy += ty;
-
-//             x += dx;
-//             y += dy;
-
-//             if (x < 0 || y < 0 || x >= MAP_WIDTH || y >= MAP_HEIGHT) break;
-//         }
-//     }
-// }
-
 function generateMountain() {
+    console.log("Generating mountain...");
+
     let count = 2048;
 
     for (c = 0; c < count; c++) {
@@ -351,38 +460,6 @@ function generateMountain() {
         }
     }
 }
-
-// function generateRivers2() {
-//     let count = 32;
-
-//     for (c = 0; c < count; c++) {
-//         let x = rand(1, MAP_WIDTH-1);
-//         let y = rand(1, MAP_HEIGHT-1);
-
-//         let xdir = 0;
-//         let ydir = 0;
-//         let elev = 1.0; // elevation
-
-//         for (l = 0; l < 512; l++) {
-//             // while (mapImg[x][y] != 4) {
-//             //     x = rand(1, MAP_WIDTH-1);
-//             //     y = rand(1, MAP_HEIGHT-1);
-//             // }
-//             if (map[x][y] <= L_SEA) break;
-
-//             mapSurface[x][y] = 10;
-//             mapImg[x][y] = 5;
-
-//             if (x > 0 && map[x-1][y] < elev) { elev = map[x-1][y]; xdir = -1; ydir = 0; }
-//             if (y > 0 && map[x][y-1] < elev) { elev = map[x][y-1]; xdir = 0; ydir = -1; }
-//             if (x < MAP_WIDTH-1 && map[x+1][y] < elev) { elev = map[x+1][y]; xdir = +1; ydir = 0; }
-//             if (x < MAP_HEIGHT-1 && map[x][y+1] < elev) { elev = map[x][y+1]; xdir = 0; ydir = +1; }
-
-//             x += xdir;
-//             y += ydir;
-//         }
-//     }
-// }
 
 function generateRiver(rx, ry) {
     let xdir = 0;
@@ -403,8 +480,6 @@ function generateRiver(rx, ry) {
         if (y > 0 && map[x][y-1] < elev) { elev = map[x][y-1]; xdir = 0; ydir = -1; }
         if (x < MAP_WIDTH-1 && map[x+1][y] < elev) { elev = map[x+1][y]; xdir = +1; ydir = 0; }
         if (x < MAP_HEIGHT-1 && map[x][y+1] < elev) { elev = map[x][y+1]; xdir = 0; ydir = +1; }
-        
-        console.log('xxxxxxx', xdir, ydir);
         
         x += xdir;
         y += ydir;
