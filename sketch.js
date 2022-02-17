@@ -15,9 +15,8 @@ const L_MOUNTAIN    =   0.51;       //0.5075;
 const INTERPOLATION =   128;
 
 
-var map,
-    mapSurface,     // mountain, hills
-    mapResources,   // forests, ores
+var map,            // random-valued map (0, 1)
+    mapResources,   // ores, oil and gas
     mapAnimals,     // animals
     mapImg;         // FINAL
 
@@ -60,10 +59,8 @@ function setup() {
     mapImg = mapInit();
 
     map = mapInit();
-    mapSurface = mapInit();
     mapResources = mapInit();
     mapAnimals = mapInit();
-
 
     generate();
 }
@@ -100,7 +97,7 @@ function draw() {
                 break;
 
                 case T_SURFACE:
-                    if (mapSurface[x][y] == 10) { // river
+                    if (mapImg[x][y] == TILE_RIVER) { // river
                         pixels[i]   =   0;
                         pixels[i+1] =   0;
                         pixels[i+2] =   223;
@@ -275,16 +272,6 @@ function generate() {
             map[x][y] = Math.random();
         }
     }
-    
-
-    console.log("Generating surface...");
-
-    // Each element
-    for (x = 0; x < MAP_WIDTH; x++) {
-        for (y = 0; y < MAP_HEIGHT; y++) {
-            mapSurface[x][y] = Math.random();
-        }
-    }
 
 
 
@@ -307,21 +294,21 @@ function generate() {
 
     for (x = 0; x < MAP_WIDTH; x++) {
         for (y = 0; y < MAP_HEIGHT; y++) {
-            if (map[x][y] <= L_SEA) mapImg[x][y] = 0; // sea
+            if (map[x][y] <= L_SEA) setTile(TILE_SEA, x, y);
             else {
                 if (Math.random() >= 0.825) {
-                    if (map[x][y] <= L_BEACH) mapImg[x][y] = 1; // beach
+                    if (map[x][y] <= L_BEACH) setTile(TILE_BEACH, x, y);
                     else {
-                        mapImg[x][y] = 3;
-                        if (x > 0               && map[x-1][y] > L_BEACH) mapImg[x-1][y] = 3;
-                        if (x < MAP_WIDTH - 1   && map[x+1][y] > L_BEACH) mapImg[x+1][y] = 3;
-                        if (y > 0               && map[x][y-1] > L_BEACH) mapImg[x][y-1] = 3;
-                        if (y < MAP_HEIGHT - 1  && map[x][y+1] > L_BEACH) mapImg[x][y+1] = 3;
+                        setTile(TILE_FOREST, x, y);
+                        if (x > 0               && map[x-1][y] > L_BEACH) setTile(TILE_FOREST, x-1, y);
+                        if (x < MAP_WIDTH - 1   && map[x+1][y] > L_BEACH) setTile(TILE_FOREST, x+1, y);
+                        if (y > 0               && map[x][y-1] > L_BEACH) setTile(TILE_FOREST, x, y-1);
+                        if (y < MAP_HEIGHT - 1  && map[x][y+1] > L_BEACH) setTile(TILE_FOREST, x, y+1);
 
                     } 
                 }
-                else if (map[x][y] <= L_BEACH) mapImg[x][y] = 1; // beach
-                else mapImg[x][y] = 2; // plains
+                else if (map[x][y] <= L_BEACH) setTile(TILE_BEACH, x, y);
+                else setTile(TILE_PLAINS, x, y);
             }
         }
     }
@@ -335,7 +322,7 @@ function generate() {
     // Each element
     for (x = 0; x < MAP_WIDTH; x++) {
         for (y = 0; y < MAP_HEIGHT; y++) {
-            mapResources[x][y] = 10; // reset
+            mapResources[x][y] = -1; // reset
 
             if (mapImg[x][y] == TILE_MOUNTAIN) {
                 let r = Math.random();
@@ -375,36 +362,93 @@ function generate() {
     console.log("The map has been generated successfully!");
 }
 
+function generateMountain() {
+    console.log("Generating mountain...");
+
+    let count = 2048;
+
+    for (c = 0; c < count; c++) {
+        let x = rand(1, MAP_WIDTH-1);
+        let y = rand(1, MAP_HEIGHT-1);
+
+        // Inside map - without borders
+        if (x > 0 && y > 0 && x < MAP_WIDTH-1 && y < MAP_HEIGHT-1) {
+            if (map[x][y] > L_BEACH)    setTile(TILE_MOUNTAIN, x, y);
+            if (map[x-1][y] > L_BEACH)  setTile(TILE_MOUNTAIN, x-1, y);
+            if (map[x+1][y] > L_BEACH)  setTile(TILE_MOUNTAIN, x+1, y);
+            if (map[x][y-1] > L_BEACH)  setTile(TILE_MOUNTAIN, x, y-1);
+            if (map[x][y+1] > L_BEACH)  setTile(TILE_MOUNTAIN, x, y+1);
+        }
+    }
+}
+
 function generateRivers() {
     console.log("Generating rivers...");
 
     let max = 0; // maximal value
-    let tim = 0; // times
 
+    // Searching maximum
     for (x = 0; x < MAP_WIDTH; x++) {
         for (y = 0; y < MAP_HEIGHT; y++) {
-            if (mapImg[x][y] == 4) {
-                if (map[x][y].toFixed(2) > max.toFixed(2)) {
-                    max = map[x][y];
-                    tim = 1;
-                }
-                else if (map[x][y].toFixed(2) == max.toFixed(2)) tim++;
-            }
+            if (mapImg[x][y] == 4 && map[x][y].toFixed(2) > max.toFixed(2)) max = map[x][y];
         }
     }
 
-
-    // console.log("Max:", max, ", times:", tim, "where is the heighest place on the map");
-
+    // Generating river
     for (x = 0; x < MAP_WIDTH; x++) {
         for (y = 0; y < MAP_HEIGHT; y++) {
             if (map[x][y].toFixed(1) == max.toFixed(1) && mapImg[x][y] == 4 && rand(0, 99) == 0) {
-                mapSurface[x][y] = 10;
-                mapImg[x][y] = 5;
-                // console.log("River");
-
+                setTile(TILE_RIVER, x, y);
                 generateRiver(x, y);
             }
+        }
+    }
+}
+
+function generateRiver(rx, ry) {
+    let x    = rx;
+    let y    = ry;
+    let xdir = 0;
+    let ydir = 0;
+    let elev = map[x][y]; // elevation
+
+    do {
+        xdir = 0;
+        ydir = 0;
+
+        setTile(TILE_RIVER, x, y);
+
+        if (x > 0 && map[x-1][y] < elev) { elev = map[x-1][y]; xdir = -1; ydir = 0; }
+        if (y > 0 && map[x][y-1] < elev) { elev = map[x][y-1]; xdir = 0; ydir = -1; }
+        if (x < MAP_WIDTH-1 && map[x+1][y] < elev) { elev = map[x+1][y]; xdir = +1; ydir = 0; }
+        if (x < MAP_HEIGHT-1 && map[x][y+1] < elev) { elev = map[x][y+1]; xdir = 0; ydir = +1; }
+        
+        x += xdir;
+        y += ydir;
+
+        if (x+xdir < 0 || y+ydir < 0 || x+xdir >= MAP_WIDTH-1 || y+ydir >= MAP_HEIGHT-1) break;
+    } while ((xdir != 0 || ydir != 0) && map[x+xdir][y+ydir] > L_SEA);
+
+    if (x+xdir > 0 && y+ydir > 0 && x+xdir < MAP_WIDTH-1 && y+ydir < MAP_HEIGHT-1) {
+        // Make a place, where water can accumulate above the sea
+        if (map[x+xdir][y+ydir] > L_SEA) {
+            setTile(TILE_SEA, x+xdir, y+ydir);
+        }
+        setTile(TILE_SEA, x+xdir-1, y+ydir);
+        setTile(TILE_SEA, x+xdir+1, y+ydir);
+        setTile(TILE_SEA, x+xdir, y+ydir-1);
+        setTile(TILE_SEA, x+xdir, y+ydir+1);
+    }
+}
+
+// Interpolate all
+function interpolateAll() {
+    // console.log("Interpolating terrain...");
+
+    // Each element
+    for (x = 0; x < MAP_WIDTH; x++) {
+        for (y = 0; y < MAP_HEIGHT; y++) {
+            map[x][y] = interpolate(map, x, y);
         }
     }
 }
@@ -421,80 +465,14 @@ function interpolate(m, x, y) {
     return (sum / tim);
 }
 
-// Interpolate all
-function interpolateAll() {
-    // console.log("Interpolating terrain...");
-
-    // Each element
-    for (x = 0; x < MAP_WIDTH; x++) {
-        for (y = 0; y < MAP_HEIGHT; y++) {
-            map[x][y] = interpolate(map, x, y);
-        }
-    }
-}
-
 function setTheme(theme) {
     T_CURRENT = theme;
 }
 
+function setTile(tile, x, y) {
+    mapImg[x][y] = tile;
+}
+
 function rand(min, max) {
     return Math.floor(Math.random() * max) + min;
-}
-
-function generateMountain() {
-    console.log("Generating mountain...");
-
-    let count = 2048;
-
-    for (c = 0; c < count; c++) {
-        let x = rand(1, MAP_WIDTH-1);
-        let y = rand(1, MAP_HEIGHT-1);
-
-        // Inside map - without borders
-        if (x > 0 && y > 0 && x < MAP_WIDTH-1 && y < MAP_HEIGHT-1) {
-            if (map[x][y] > L_BEACH) mapImg[x][y] = 4;
-            if (map[x-1][y] > L_BEACH) mapImg[x-1][y] = 4;
-            if (map[x+1][y] > L_BEACH) mapImg[x+1][y] = 4;
-            if (map[x][y-1] > L_BEACH) mapImg[x][y-1] = 4;
-            if (map[x][y+1] > L_BEACH) mapImg[x][y+1] = 4;
-        }
-    }
-}
-
-function generateRiver(rx, ry) {
-    let xdir = 0;
-    let ydir = 0;
-    let elev = map[rx][ry]; // elevation
-
-    let x = rx;
-    let y = ry;
-
-    do {
-        xdir = 0;
-        ydir = 0;
-
-        mapSurface[x][y] = 10;
-        mapImg[x][y] = 5;
-
-        if (x > 0 && map[x-1][y] < elev) { elev = map[x-1][y]; xdir = -1; ydir = 0; }
-        if (y > 0 && map[x][y-1] < elev) { elev = map[x][y-1]; xdir = 0; ydir = -1; }
-        if (x < MAP_WIDTH-1 && map[x+1][y] < elev) { elev = map[x+1][y]; xdir = +1; ydir = 0; }
-        if (x < MAP_HEIGHT-1 && map[x][y+1] < elev) { elev = map[x][y+1]; xdir = 0; ydir = +1; }
-        
-        x += xdir;
-        y += ydir;
-
-        if (x+xdir < 0 || y+ydir < 0 || x+xdir >= MAP_WIDTH-1 || y+ydir >= MAP_HEIGHT-1) break;
-    } while ((xdir != 0 || ydir != 0) && map[x+xdir][y+ydir] > L_SEA);
-
-    if (x+xdir > 0 && y+ydir > 0 && x+xdir < MAP_WIDTH-1 && y+ydir < MAP_HEIGHT-1) {
-        // Make a place, where water can accumulate above the sea
-        if (map[x+xdir][y+ydir] > L_SEA) {
-            mapImg[x+xdir][y+ydir] = 0;
-        }
-        mapImg[x+xdir-1][y+ydir] = 0;
-        mapImg[x+xdir+1][y+ydir] = 0;
-        mapImg[x+xdir][y+ydir-1] = 0;
-        mapImg[x+xdir][y+ydir+1] = 0;
-    }
 }
