@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraGen</title>
+
+    <meta name="author" content="Marek Kurańda" />
+    <meta name="description" content="Program that generates simple world" />
+    <meta name="creation-date" content="2022-02-16" />
+    <meta name="last-update" content="2022-02-17" />
+
+    <link rel="stylesheet" href="index.css" />
+    <link rel="icon" href="icon128.png" sizes="128x128" />
+
+    <script src="p5.min.js"></script>
+    <script src="sketch.js"></script>
+</head>
+<body>
+    <div>
+        <h1 class="text">TerraGen</h1>
+        <h3 class="text">by Marek Kurańda</h3>
+        <h5 class="text">2022</h5>
+    </div>
+    <div>
+        <div class="b-line center">
+            <button class="special" id="b_generate" onclick="generate()">Generate!</button>
+        </div>
+        <div class="b-line">
+            <input type="checkbox" id="rivers" name="rivers" checked>
+            <label for="rivers">Generate rivers</label>
+        </div>
+        <div class="container center">
+            <div class="b-line">
+                <p>Themes:</p>
+            </div>
+            <div class="b-line">
+                <button id="b_theme" onclick="setTheme(T_TERRAIN)">Terrain</button>
+                <button id="b_theme" onclick="setTheme(T_SURFACE)">Surface</button>
+                <button id="b_theme" onclick="setTheme(T_RESOURCES)" disabled>Resources</button>
+                <button id="b_theme" onclick="setTheme(T_ANIMALS)" disabled>Animals</button>
+            </div>
+            <div class="b-line">
+                <button class="special" id="b_final" onclick="setTheme(T_FINAL)">FINAL!</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
